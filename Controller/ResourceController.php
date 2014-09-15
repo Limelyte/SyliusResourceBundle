@@ -426,7 +426,7 @@ class ResourceController extends FOSRestController
     private function manageResource($resource, $action)
     {
         if (!in_array($action, array('create', 'update', 'delete'))) {
-            throw new \InvalidArgumentException();
+            throw new \InvalidArgumentException(sprintf('Unknown resource management action called "%s".', $action));
         }
 
         $resource = $this->domainManager->{$action}($resource);
