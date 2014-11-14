@@ -28,6 +28,12 @@ class DatabaseDriverFactory
         $managerName,
         $templates = null
     ) {
+
+        // support custom driver by having the type be a FQCN
+        if (class_exists($type)) {
+            return new $type($container, $prefix, $resourceName, $managerName, $templates);
+        }
+
         switch ($type) {
             case SyliusResourceBundle::DRIVER_DOCTRINE_ORM:
                 return new DoctrineORMDriver($container, $prefix, $resourceName, $managerName, $templates);
