@@ -169,7 +169,7 @@ class ResourceController extends FOSRestController
         $form = $this->getForm($resource);
 
         if ($form->handleRequest($request)->isValid()) {
-            $resource = $this->manageResource($resource, 'create');
+            $resource = $this->handleForm($form, $resource, 'create');
 
             if ($this->config->isApiRequest()) {
                 return $this->handleView($this->view($resource, 201));
@@ -209,7 +209,7 @@ class ResourceController extends FOSRestController
         $form     = $this->getForm($resource);
 
         if (in_array($request->getMethod(), array('POST', 'PUT', 'PATCH')) && $form->submit($request, !$request->isMethod('PATCH'))->isValid()) {
-            $this->manageResource($resource, 'update');
+            $this->handleForm($form, $resource, 'update');
 
             if ($this->config->isApiRequest()) {
                 return $this->handleView($this->view($resource, 204));
@@ -421,6 +421,20 @@ class ResourceController extends FOSRestController
         }
 
         return $handler->handle($view);
+    }
+
+    /**
+     * Allow custom handling of the form if needed
+     *
+     * By default, $resource is the object that is saved but data can also come from the form
+     *
+     * @param FormInterface $form
+     * @param $resource
+     * @param $action
+     */
+    protected function handleForm(FormInterface $form, $resource, $action)
+    {
+        return $this->manageResource($resource, $action);
     }
 
     private function manageResource($resource, $action)
