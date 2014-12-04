@@ -31,7 +31,7 @@ class DatabaseDriverFactory
 
         // support custom driver by having the type be a FQCN
         if (class_exists($type)) {
-            return new $type($container, $prefix, $resourceName, $resourceName, $templates);
+            return new $type($container, $prefix, $resourceName, $objectManagerName, $templates);
         }
 
         switch ($type) {
