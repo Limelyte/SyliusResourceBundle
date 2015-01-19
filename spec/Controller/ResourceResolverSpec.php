@@ -4,7 +4,7 @@ namespace spec\Sylius\Bundle\ResourceBundle\Controller;
 
 use PhpSpec\ObjectBehavior;
 use Sylius\Bundle\ResourceBundle\Controller\Configuration;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Sylius\Component\Resource\Repository\ResourceRepositoryInterface;
 
 /**
  * Resource resolver spec.
@@ -24,7 +24,7 @@ class ResourceResolverSpec extends ObjectBehavior
     }
 
     function it_calls_proper_method_with_arguments_based_on_configuration(
-        RepositoryInterface $repository,
+        ResourceRepositoryInterface $repository,
         $configuration
     ) {
         $configuration->getRepositoryMethod('findBy')->willReturn('findAll');

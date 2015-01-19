@@ -18,7 +18,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
  *
  * @author Liverbool <nukboon@gmail.com>
  */
-class ObjectCollectionToIdentifiersTransformer extends ObjectToIdentifierTransformer
+class ResourceCollectionToIdentifiersTransformer extends ResourceToIdentifierTransformer
 {
     /**
      * {@inheritdoc}

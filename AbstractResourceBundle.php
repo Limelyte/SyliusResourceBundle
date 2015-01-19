@@ -38,18 +38,9 @@ abstract class AbstractResourceBundle extends Bundle implements ResourceBundleIn
      */
     public function build(ContainerBuilder $container)
     {
-        $interfaces = $this->getModelInterfaces();
-        if (!empty($interfaces)) {
-            $container->addCompilerPass(
-                new ResolveDoctrineTargetEntitiesPass(
-                    $this->getBundlePrefix(),
-                    $interfaces
-                )
-            );
-        }
-
         if (null !== $this->getModelNamespace()) {
             $className = get_class($this);
+
             foreach ($className::getSupportedDrivers() as $driver) {
                 list($compilerPassClassame, $compilerPassMethod) = $this->getMappingCompilerPassInfo($driver);
 
@@ -78,16 +69,6 @@ abstract class AbstractResourceBundle extends Bundle implements ResourceBundleIn
     protected function getBundlePrefix()
     {
         return Container::underscore(substr(strrchr(get_class($this), '\\'), 1, -6));
-    }
-
-    /**
-     * Target entities resolver configuration (Interface - Model).
-     *
-     * @return array
-     */
-    protected function getModelInterfaces()
-    {
-        return array();
     }
 
     /**

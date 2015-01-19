@@ -11,8 +11,8 @@
 
 namespace Sylius\Bundle\ResourceBundle\Form\Type;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
-use Sylius\Bundle\ResourceBundle\Form\DataTransformer\ObjectToIdentifierTransformer;
+use Sylius\Bundle\ResourceBundle\Form\DataTransformer\ResourceToIdentifierTransformer;
+use Sylius\Component\Resource\Repository\ResourceRepositoryInterface;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
@@ -21,15 +21,16 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
  * Object to identifier type.
  *
  * @author Alexandre Bacco <alexandre.bacco@gmail.com>
+ * @author Paweł Jędrzejewski <pawel@sylius.org>
  */
-class ObjectToIdentifierType extends AbstractType
+class ResourceToIdentifierType extends AbstractType
 {
     /**
-     * Manager registry.
+     * Repository.
      *
-     * @var ManagerRegistry
+     * @var ResourceRepositoryInterface
      */
-    protected $manager;
+    protected $repository;
 
     /**
      * Form name.
@@ -38,9 +39,13 @@ class ObjectToIdentifierType extends AbstractType
      */
     protected $name;
 
-    public function __construct(ManagerRegistry $manager, $name)
+    /**
+     * @param ResourceRepositoryInterface $repository
+     * @param string $name
+     */
+    public function __construct(ResourceRepositoryInterface $repository, $name)
     {
-        $this->manager = $manager;
+        $this->repository = $repository;
         $this->name = $name;
     }
 
@@ -50,7 +55,7 @@ class ObjectToIdentifierType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder->addModelTransformer(
-            new ObjectToIdentifierTransformer($this->manager->getRepository($options['class']), $options['identifier'])
+            new ResourceToIdentifierTransformer($this->repository)
         );
     }
 
@@ -74,7 +79,7 @@ class ObjectToIdentifierType extends AbstractType
      */
     public function getParent()
     {
-        return 'entity';
+        return 'text';
     }
 
     /**

@@ -11,27 +11,34 @@
 
 namespace Sylius\Bundle\ResourceBundle\Form\Type;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
 use Sylius\Bundle\ResourceBundle\Form\DataTransformer\ObjectToIdentifierTransformer;
+use Sylius\Bundle\ResourceBundle\Form\DataTransformer\ResourceToIdentifierTransformer;
+use Sylius\Component\Resource\Repository\ResourceRepositoryInterface;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Exception\LogicException;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
-class EntityHiddenType extends AbstractType
+/**
+ * @author Paweł Jędrzejewski <pawel@sylius.org>
+ */
+class ResourceHiddenType extends AbstractType
 {
     /**
-     * Manager registry.
-     *
-     * @var ManagerRegistry
+     * @var ResourceRepositoryInterface
      */
-    protected $manager;
+    protected $repository;
 
-    public function __construct(ManagerRegistry $manager)
+    /**
+     * @var string
+     */
+    protected $name;
+
+    public function __construct(ResourceRepositoryInterface $repository, $name)
     {
-        $this->manager = $manager;
+        $this->repository = $repository;
+        $this->name = $name;
     }
 
     /**
@@ -39,15 +46,10 @@ class EntityHiddenType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        if (!$options['data_class']) {
-            throw new LogicException('Option "data_class" must be set.');
-        }
-
-        $transformer = new ObjectToIdentifierTransformer($this->manager->getRepository($options['data_class']), $options['identifier']);
+        $transformer = new ResourceToIdentifierTransformer($this->repository);
 
         $builder
             ->addViewTransformer($transformer)
-            ->setAttribute('data_class', $options['data_class'])
             ->addEventListener(FormEvents::PRE_SUBMIT, function (FormEvent $event) use ($transformer) {
                 $event->setData($transformer->transform($event->getData()));
             })
@@ -80,6 +82,6 @@ class EntityHiddenType extends AbstractType
      */
     public function getName()
     {
-        return 'entity_hidden';
+        return $this->name;
     }
 }

@@ -11,8 +11,9 @@
 
 namespace Sylius\Bundle\ResourceBundle\Controller;
 
-use Doctrine\Common\Inflector\Inflector;
+use Sylius\Component\Resource\Metadata\ResourceMetadataInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
  * Resource controller configuration.
@@ -21,32 +22,17 @@ use Symfony\Component\HttpFoundation\Request;
  * @author Saša Stamenković <umpirsky@gmail.com>
  * @author Gustavo Perdomo <gperdomor@gmail.com>
  */
-class Configuration
+class RequestConfiguration
 {
     /**
-     * @var ParametersParser
+     * @var Request
      */
-    protected $parser;
+    protected $request;
 
     /**
-     * @var string
+     * @var ResourceMetadataInterface
      */
-    protected $bundlePrefix;
-
-    /**
-     * @var string
-     */
-    protected $resourceName;
-
-    /**
-     * @var string
-     */
-    protected $templateNamespace;
-
-    /**
-     * @var string
-     */
-    protected $templatingEngine;
+    protected $metadata;
 
     /**
      * @var Parameters
@@ -54,47 +40,17 @@ class Configuration
     protected $parameters;
 
     /**
-     * @var array
+     * @param string $templatingEngine
+     * @param array $defaultParameters
      */
-    protected $settings = array();
-
-    /**
-     * Current request.
-     *
-     * @var Request
-     */
-    protected $request;
-
     public function __construct(
-        ParametersParser $parser,
-        $bundlePrefix,
-        $resourceName,
-        $templateNamespace,
-        $templatingEngine = 'twig',
-        array $settings
+        ResourceMetadataInterface $metadata,
+        Request $request,
+        Parameters $parameters
     ) {
-        $this->bundlePrefix = $bundlePrefix;
-        $this->resourceName = $resourceName;
-        $this->templateNamespace = $templateNamespace;
-        $this->templatingEngine = $templatingEngine;
-        $this->settings = $settings;
-        $this->parser = $parser;
-        $this->parameters = new Parameters();
-    }
-
-    /**
-     * @return Parameters
-     */
-    public function getParameters()
-    {
-        return $this->parameters;
-    }
-
-    public function setParameters(Parameters $parameters)
-    {
+        $this->metadata = $metadata;
+        $this->request = $request;
         $this->parameters = $parameters;
-
-        return $this;
     }
 
     /**
@@ -105,73 +61,64 @@ class Configuration
         return $this->request;
     }
 
-    public function setRequest(Request $request)
+    /**
+     * @return bool
+     */
+    public function isHtmlRequest()
     {
-        $this->request = $request;
-
-        return $this;
+        return 'html' === $this->request->getRequestFormat();
     }
 
-    public function getBundlePrefix()
+    /**
+     * @param $name
+     * @return null|string
+     */
+    public function getDefaultTemplateName($name)
     {
-        return $this->bundlePrefix;
+        if (!$this->metadata->hasParameter('templates')) {
+            return null;
+        }
+
+        return sprintf('%s:%s.%s', $this->metadata->getParameter('templates') ?: ':', $name, 'twig');
     }
 
-    public function getResourceName()
-    {
-        return $this->resourceName;
-    }
-
-    public function getPluralResourceName()
-    {
-        return Inflector::pluralize($this->resourceName);
-    }
-
-    public function getTemplateNamespace()
-    {
-        return $this->templateNamespace;
-    }
-
-    public function getTemplatingEngine()
-    {
-        return $this->templatingEngine;
-    }
-
-    public function isApiRequest()
-    {
-        return null !== $this->request && 'html' !== $this->request->getRequestFormat();
-    }
-
-    public function getServiceName($service)
-    {
-        return sprintf('%s.%s.%s', $this->bundlePrefix, $service, $this->resourceName);
-    }
-
-    public function getEventName($event)
-    {
-        return sprintf('%s.%s.%s', $this->bundlePrefix, $this->resourceName, $event);
-    }
-
-    public function getTemplateName($name)
-    {
-        return sprintf('%s:%s.%s', $this->templateNamespace ?: ':', $name, $this->templatingEngine);
-    }
-
+    /**
+     * @param $name
+     * @return mixed|null
+     */
     public function getTemplate($name)
     {
-        return $this->parameters->get('template', $this->getTemplateName($name));
+        $template = $this->parameters->get('template', $this->getDefaultTemplateName($name));
+
+        if (null === $template) {
+            throw new \RuntimeException(sprintf('Could not resolve default template for resources "%s".', $this->metadata->getAlias()));
+        }
+
+        return $template;
     }
 
+    /**
+     * @return mixed|null
+     */
     public function getFormType()
     {
-        return $this->parameters->get('form', sprintf('%s_%s', $this->bundlePrefix, $this->resourceName));
+        return $this->parameters->get('form', sprintf('%s_%s', $this->metadata->getApplicationName(), $this->metadata->getResourceName()));
     }
 
+    /**
+     * @param $name
+     * @return string
+     */
     public function getRouteName($name)
     {
-        return sprintf('%s_%s_%s', $this->bundlePrefix, $this->resourceName, $name);
+        return sprintf('%s_%s_%s', $this->metadata->getApplicationName(), $this->metadata->getResourceName(), $name);
     }
 
+    /**
+     * @param $name
+     *
+     * @return mixed|null|string
+     */
     public function getRedirectRoute($name)
     {
         $redirect = $this->parameters->get('redirect');
@@ -245,42 +192,62 @@ class Configuration
         $parameters = $redirect['parameters'];
 
         if (null !== $resource) {
-            $parameters = $this->parser->process($parameters, $resource);
+            $parameters = $this->parseResourceValues($parameters, $resource);
         }
 
         return $parameters;
     }
 
+    /**
+     * @return bool
+     */
     public function isLimited()
     {
-        return (bool) $this->parameters->get('limit', $this->settings['limit']);
+        return (bool) $this->parameters->get('limit', $this->defaultParameters['limit']);
     }
 
+    /**
+     * @return int|null
+     */
     public function getLimit()
     {
         $limit = null;
+
         if ($this->isLimited()) {
-            $limit = (int) $this->parameters->get('limit', $this->settings['limit']);
+            $limit = (int) $this->parameters->get('limit', 10);
         }
 
         return $limit;
     }
 
+    /**
+     * @return bool
+     */
     public function isPaginated()
     {
-        return (bool) $this->parameters->get('paginate', $this->settings['default_page_size']);
+        return (bool) $this->parameters->get('paginate', true);
     }
 
+    /**
+     * @return int
+     */
     public function getPaginationMaxPerPage()
     {
-        return (int) $this->parameters->get('paginate', $this->settings['default_page_size']);
+        return (int) $this->parameters->get('paginate', 10);
     }
 
+    /**
+     * @return bool
+     */
     public function isFilterable()
     {
-        return (bool) $this->parameters->get('filterable', $this->settings['filterable']);
+        return (bool) $this->parameters->get('filterable', false);
     }
 
+    /**
+     * @param array $criteria
+     * @return array
+     */
     public function getCriteria(array $criteria = array())
     {
         $defaultCriteria = array_merge($this->parameters->get('criteria', array()), $criteria);
@@ -292,11 +259,18 @@ class Configuration
         return $defaultCriteria;
     }
 
+    /**
+     * @return bool
+     */
     public function isSortable()
     {
-        return (bool) $this->parameters->get('sortable', $this->settings['sortable']);
+        return (bool) $this->parameters->get('sortable', true);
     }
 
+    /**
+     * @param array $sorting
+     * @return array
+     */
     public function getSorting(array $sorting = array())
     {
         $defaultSorting = array_merge($this->parameters->get('sorting', array()), $sorting);
@@ -316,6 +290,11 @@ class Configuration
         return $defaultSorting;
     }
 
+    /**
+     * @param $parameter
+     * @param array $defaults
+     * @return array
+     */
     public function getRequestParameter($parameter, $defaults = array())
     {
         return array_replace_recursive(
@@ -324,6 +303,10 @@ class Configuration
         );
     }
 
+    /**
+     * @param $default
+     * @return mixed|null
+     */
     public function getRepositoryMethod($default)
     {
         $repository = $this->parameters->get('repository', array('method' => $default));
@@ -331,6 +314,10 @@ class Configuration
         return is_array($repository) ? $repository['method'] : $repository;
     }
 
+    /**
+     * @param array $default
+     * @return array
+     */
     public function getRepositoryArguments(array $default = array())
     {
         $repository = $this->parameters->get('repository', array());
@@ -338,6 +325,10 @@ class Configuration
         return isset($repository['arguments']) ? $repository['arguments'] : $default;
     }
 
+    /**
+     * @param $default
+     * @return mixed|null
+     */
     public function getFactoryMethod($default)
     {
         $factory = $this->parameters->get('factory', array('method' => $default));
@@ -345,6 +336,10 @@ class Configuration
         return is_array($factory) ? $factory['method'] : $factory;
     }
 
+    /**
+     * @param array $default
+     * @return array
+     */
     public function getFactoryArguments(array $default = array())
     {
         $factory = $this->parameters->get('factory', array());
@@ -352,35 +347,83 @@ class Configuration
         return isset($factory['arguments']) ? $factory['arguments'] : $default;
     }
 
+    /**
+     * @param null $message
+     * @return mixed|null
+     */
     public function getFlashMessage($message = null)
     {
-        $message = sprintf('%s.%s.%s', $this->bundlePrefix, $this->resourceName, $message);
+        $message = sprintf('%s.%s.%s', $this->metadata->getApplicationName(), $this->metadata->getResourceName(), $message);
 
         return $this->parameters->get('flash', $message);
     }
 
+    /**
+     * @return mixed|null
+     */
     public function getSortablePosition()
     {
         return $this->parameters->get('sortable_position', 'position');
     }
 
+    /**
+     * @return mixed|null
+     */
     public function getSerializationGroups()
     {
         return $this->parameters->get('serialization_groups', array());
     }
 
+    /**
+     * @return mixed|null
+     */
     public function getSerializationVersion()
     {
         return $this->parameters->get('serialization_version');
     }
 
+    /**
+     * @param null $default
+     * @return mixed|null
+     */
     public function getEvent($default = null)
     {
         return $this->parameters->get('event', $default);
     }
 
+    /**
+     * @param null $default
+     * @return mixed|null
+     */
     public function getPermission($default = null)
     {
         return $this->parameters->get('permission', $default);
+    }
+
+    /**
+     * @param array  $parameters
+     * @param object $resource
+     *
+     * @return array
+     */
+    private function parseResourceValues(array $parameters, $resource)
+    {
+        $accessor = PropertyAccess::createPropertyAccessor();
+
+        if (empty($parameters)) {
+            return array('id' => $accessor->getValue($resource, 'id'));
+        }
+
+        foreach ($parameters as $key => $value) {
+            if (is_array($value)) {
+                $parameters[$key] = $this->parseResourceValues($value, $resource);
+            }
+
+            if (is_string($value) && 0 === strpos($value, 'resource.')) {
+                $parameters[$key] = $accessor->getValue($resource, substr($value, 9));
+            }
+        }
+
+        return $parameters;
     }
 }

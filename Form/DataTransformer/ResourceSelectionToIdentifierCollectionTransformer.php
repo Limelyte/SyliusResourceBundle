@@ -16,26 +16,26 @@ use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\UnexpectedTypeException;
 
-class ObjectSelectionToIdentifierCollectionTransformer implements DataTransformerInterface
+class ResourceSelectionToIdentifierCollectionTransformer implements DataTransformerInterface
 {
     /**
-     * @var object[]
+     * @var ResourceInterface[]
      */
-    protected $objects;
+    protected $resources;
 
     /**
      * @var boolean
      */
-    protected $saveObjects;
+    protected $useIdentifiers;
 
     /**
-     * @param object[] $objects
-     * @param boolean  $saveObjects
+     * @param resource[] $resources
+     * @param boolean  $useIdentifiers
      */
-    public function __construct(array $objects, $saveObjects = true)
+    public function __construct(array $resources, $useIdentifiers = true)
     {
-        $this->objects = $objects;
-        $this->saveObjects = $saveObjects;
+        $this->resources = $resources;
+        $this->useIdentifiers = $useIdentifiers;
     }
 
     /**
@@ -71,7 +71,7 @@ class ObjectSelectionToIdentifierCollectionTransformer implements DataTransforme
     }
 
     /**
-     * @param object[] $value
+     * @param resource[] $value
      *
      * @return ArrayCollection
      */
@@ -79,17 +79,17 @@ class ObjectSelectionToIdentifierCollectionTransformer implements DataTransforme
     {
         $collection = new ArrayCollection();
 
-        foreach ($value as $objects) {
-            if (null === $objects) {
+        foreach ($value as $resources) {
+            if (null === $resources) {
                 continue;
             }
 
-            if (is_array($objects)) {
-                foreach ($objects as $object) {
-                    $collection->add($this->saveObjects ? $object : $object->getId());
+            if (is_array($resources)) {
+                foreach ($resources as $resource) {
+                    $collection->add($this->useIdentifiers ? $resource : $resource->getId());
                 }
             } else {
-                $collection->add($this->saveObjects ? $objects : $objects->getId());
+                $collection->add($this->useIdentifiers ? $resources : $resources->getId());
             }
         }
 

@@ -36,29 +36,31 @@ class DoctrineODMDriver extends AbstractDatabaseDriver
     protected function getRepositoryDefinition(array $classes)
     {
         $reflection = new \ReflectionClass($classes['model']);
+
         $translatableInterface = 'Sylius\Component\Translation\Model\TranslatableInterface';
         $translatable = (interface_exists($translatableInterface) && $reflection->implementsInterface($translatableInterface));
 
         $repositoryClass = $translatable
-            ? 'Sylius\Bundle\TranslationBundle\Doctrine\ODM\MongoDB\TranslatableResourceRepository'
+            ? new Parameter('sylius.mongodb_odm.translatable_repository.class')
             : new Parameter('sylius.mongodb_odm.repository.class');
+
+        $repositoryKey = $this->getContainerKey('repository', '.class');
+
+        if ($this->container->hasParameter($repositoryKey)) {
+            $repositoryClass = $this->container->getParameter($repositoryKey);
+        }
 
         if (isset($classes['repository'])) {
             $repositoryClass = $classes['repository'];
         }
 
-        $unitOfWorkDefinition = new Definition('Doctrine\\ODM\\MongoDB\\UnitOfWork');
-        $unitOfWorkDefinition
-            ->setFactoryService($this->getManagerServiceKey())
-            ->setFactoryMethod('getUnitOfWork')
-            ->setPublic(false);
+        $doctrineDefinition = new Definition('Doctrine\ODM\MongoDB\DocumentRepository');
+        $doctrineDefinition->setFactoryService(new Reference($this->getManagerServiceKey()));
+        $doctrineDefinition->setFactoryMethod('getRepository');
+        $doctrineDefinition->setArguments(array($classes['model']));
 
         $definition = new Definition($repositoryClass);
-        $definition->setArguments(array(
-            new Reference($this->getContainerKey('manager')),
-            $unitOfWorkDefinition,
-            $this->getClassMetadataDefinition($classes['model']),
-        ));
+        $definition->setArguments(array($doctrineDefinition, new Reference($this->getManagerServiceKey())));
 
         return $definition;
     }

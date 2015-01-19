@@ -11,40 +11,35 @@
 
 namespace spec\Sylius\Bundle\ResourceBundle\Form\Type;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
-use Doctrine\Common\Persistence\ObjectRepository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Sylius\Component\Resource\Repository\ResourceRepositoryInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
-class EntityHiddenTypeSpec extends ObjectBehavior
+class ResourceHiddenTypeSpec extends ObjectBehavior
 {
-    function let(ManagerRegistry $manager)
+    function let(ResourceRepositoryInterface $repository)
     {
-        $this->beConstructedWith($manager);
+        $this->beConstructedWith($repository, 'sylius_product_hidden');
     }
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('Sylius\Bundle\ResourceBundle\Form\Type\EntityHiddenType');
+        $this->shouldHaveType('Sylius\Bundle\ResourceBundle\Form\Type\ResourceHiddenType');
     }
 
-    function it_build_a_form($manager, FormBuilderInterface $builder, ObjectRepository $repository)
+    function it_build_a_form(FormBuilderInterface $builder)
     {
-        $manager->getRepository('data_class')->willReturn($repository);
-
         $builder->addViewTransformer(
-            Argument::type('Sylius\Bundle\ResourceBundle\Form\DataTransformer\ObjectToIdentifierTransformer')
+            Argument::type('Sylius\Bundle\ResourceBundle\Form\DataTransformer\ResourceToIdentifierTransformer')
         )->willReturn($builder);
 
-        $builder->setAttribute('data_class', 'data_class')->willReturn($builder);
         $builder->addEventListener(FormEvents::PRE_SUBMIT, Argument::type('\Closure'))->willReturn($builder);
         $builder->addEventListener(FormEvents::SUBMIT, Argument::type('\Closure'))->willReturn($builder);
 
         $this->buildForm($builder, array(
-            'data_class' => 'data_class',
             'identifier' => 'identifier',
         ));
     }
@@ -65,6 +60,6 @@ class EntityHiddenTypeSpec extends ObjectBehavior
 
     function it_has_a_parent()
     {
-        $this->getName()->shouldReturn('entity_hidden');
+        $this->getName()->shouldReturn('sylius_product_hidden');
     }
 }

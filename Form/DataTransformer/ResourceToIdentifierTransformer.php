@@ -11,23 +11,23 @@
 
 namespace Sylius\Bundle\ResourceBundle\Form\DataTransformer;
 
-use Doctrine\Common\Persistence\ObjectRepository;
+use Sylius\Component\Resource\Repository\ResourceRepositoryInterface;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
-use Symfony\Component\Form\Exception\UnexpectedTypeException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
  * Object to id transformer.
  *
  * @author Alexandre Bacco <alexandre.bacco@gmail.com>
+ * @author Paweł Jędrzejewski <pawel@sylius.org>
  */
-class ObjectToIdentifierTransformer implements DataTransformerInterface
+class ResourceToIdentifierTransformer implements DataTransformerInterface
 {
     /**
      * Repository.
      *
-     * @var ObjectRepository
+     * @var ResourceRepositoryInterface
      */
     protected $repository;
 
@@ -41,10 +41,10 @@ class ObjectToIdentifierTransformer implements DataTransformerInterface
     /**
      * Constructor.
      *
-     * @param ObjectRepository $repository
+     * @param ResourceRepositoryInterface $repository
      * @param string           $identifier
      */
-    public function __construct(ObjectRepository $repository, $identifier = 'id')
+    public function __construct(ResourceRepositoryInterface $repository, $identifier = 'id')
     {
         $this->repository = $repository;
         $this->identifier = $identifier;
@@ -59,16 +59,15 @@ class ObjectToIdentifierTransformer implements DataTransformerInterface
             return null;
         }
 
-        if (null === $entity = $this->repository->findOneBy(array($this->identifier => $value))) {
+        if (null === $resource = $this->repository->findOneBy(array($this->identifier => $value))) {
             throw new TransformationFailedException(sprintf(
-                'Object "%s" with identifier "%s"="%s" does not exist.',
-                $this->repository->getClassName(),
+                'Resource with identifier "%s"="%s" does not exist.',
                 $this->identifier,
                 $value
             ));
         }
 
-        return $entity;
+        return $resource;
     }
 
     /**
@@ -78,12 +77,6 @@ class ObjectToIdentifierTransformer implements DataTransformerInterface
     {
         if (null === $value) {
             return '';
-        }
-
-        $class = $this->repository->getClassName();
-
-        if (!$value instanceof $class) {
-            throw new UnexpectedTypeException($value, $class);
         }
 
         $accessor = PropertyAccess::createPropertyAccessor();

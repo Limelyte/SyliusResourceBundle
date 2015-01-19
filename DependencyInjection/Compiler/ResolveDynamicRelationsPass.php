@@ -9,37 +9,47 @@
  * file that was distributed with this source code.
  */
 
-namespace Sylius\Bundle\ResourceBundle\DependencyInjection;
+namespace Sylius\Bundle\ResourceBundle\DependencyInjection\Compiler;
 
+use Sylius\Bundle\ResourceBundle\ResourceBundleInterface;
+use Sylius\Bundle\ResourceBundle\SyliusResourceBundle;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
- * Resolves given target entities with container parameters.
- * Usable only with *doctrine/orm* driver.
+ * Adds all resources to the registry.
  *
- * @author Paweł Jędrzejewski <pjedrzejewski@sylius.pl>
+ * @author Paweł Jędrzejewski <pawel@sylius.org>
  */
-class DoctrineTargetEntitiesResolver
+class ResolveDynamicRelationsPass implements CompilerPassInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function resolve(ContainerBuilder $container, array $interfaces)
+    public function process(ContainerBuilder $container)
     {
+        $resources = $container->getParameter('sylius.resources');
+
         if (!$container->hasDefinition('doctrine.orm.listeners.resolve_target_entity')) {
             throw new \RuntimeException('Cannot find Doctrine Target Entity Resolver Listener.');
         }
 
         $resolveTargetEntityListener = $container->findDefinition('doctrine.orm.listeners.resolve_target_entity');
 
-        foreach ($interfaces as $interface => $model) {
+        foreach ($resources as $resourceName => $resourceConfig) {
+            if (SyliusResourceBundle::DRIVER_DOCTRINE_ORM !== $resourceConfig['driver']) {
+                continue;
+            }
+
+            if (!isset($resourceConfig['classes']['interface']))
+                echo $resourceConfig['classes']['model'];
+
             $resolveTargetEntityListener
                 ->addMethodCall('addResolveTargetEntity', array(
-                    $this->getInterface($container, $interface),
-                    $this->getClass($container, $model),
+                    $this->getInterface($container, $resourceConfig['classes']['interface']),
+                    $this->getClass($container, $resourceConfig['classes']['model']),
                     array(),
-                ))
-            ;
+                ));
         }
 
         if (!$resolveTargetEntityListener->hasTag('doctrine.event_listener')) {
@@ -49,7 +59,7 @@ class DoctrineTargetEntitiesResolver
 
     /**
      * @param ContainerBuilder $container
-     * @param string           $key
+     * @param string $key
      *
      * @return string
      *
@@ -72,7 +82,7 @@ class DoctrineTargetEntitiesResolver
 
     /**
      * @param ContainerBuilder $container
-     * @param string           $key
+     * @param string $key
      *
      * @return string
      *

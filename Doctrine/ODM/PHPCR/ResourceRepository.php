@@ -11,11 +11,11 @@
 
 namespace Sylius\Bundle\ResourceBundle\Doctrine\ODM\PHPCR;
 
-use Doctrine\ODM\PHPCR\DocumentRepository as BaseDocumentRepository;
 use Doctrine\ODM\PHPCR\Query\Builder\QueryBuilder;
 use Pagerfanta\Adapter\DoctrineODMPhpcrAdapter;
 use Pagerfanta\Pagerfanta;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Sylius\Bundle\ResourceBundle\Doctrine\ResourceRepository as BaseResourceRepository;
+use Sylius\Component\Resource\Repository\ResourceRepositoryInterface;
 
 /**
  * Doctrine PHPCR-ODM driver document repository.
@@ -23,24 +23,14 @@ use Sylius\Component\Resource\Repository\RepositoryInterface;
  * @author Paweł Jędrzejewski <pawel@sylius.org>
  * @author David Buchmann <mail@davidbu.ch>
  */
-class DocumentRepository extends BaseDocumentRepository implements RepositoryInterface
+class ResourceRepository extends BaseResourceRepository implements ResourceRepositoryInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function createNew()
+    public function createPaginator(array $criteria = null, array $sorting = null)
     {
-        $className = $this->getClassName();
-
-        return new $className();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createPaginator(array $criteria = array(), array $sorting = array())
-    {
-        $queryBuilder = $this->getCollectionQueryBuilder();
+        $queryBuilder = $this->objectRepository->createQueryBuilder('o');
 
         $this->applyCriteria($queryBuilder, $criteria);
         $this->applySorting($queryBuilder, $sorting);
@@ -56,14 +46,6 @@ class DocumentRepository extends BaseDocumentRepository implements RepositoryInt
     public function getPaginator(QueryBuilder $queryBuilder)
     {
         return new Pagerfanta(new DoctrineODMPhpcrAdapter($queryBuilder));
-    }
-
-    /**
-     * @return QueryBuilder
-     */
-    protected function getCollectionQueryBuilder()
-    {
-        return $this->createQueryBuilder('o');
     }
 
     /**
@@ -106,17 +88,9 @@ class DocumentRepository extends BaseDocumentRepository implements RepositoryInt
     protected function getPropertyName($name)
     {
         if (false === strpos($name, '.')) {
-            return $this->getAlias().'.'.$name;
+            return 'o.'.$name;
         }
 
         return $name;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getAlias()
-    {
-        return 'o';
     }
 }

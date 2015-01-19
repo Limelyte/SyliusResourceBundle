@@ -11,35 +11,31 @@
 
 namespace spec\Sylius\Bundle\ResourceBundle\Form\Type;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
-use Doctrine\Common\Persistence\ObjectRepository;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
+use Sylius\Component\Resource\Repository\ResourceRepositoryInterface;
 use Symfony\Component\Form\Test\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
-class ObjectToIdentifierTypeSpec extends ObjectBehavior
+class ResourceToIdentifierTypeSpec extends ObjectBehavior
 {
-    function let(ManagerRegistry $manager)
+    function let(ResourceRepositoryInterface $repository)
     {
-        $this->beConstructedWith($manager, 'name');
+        $this->beConstructedWith($repository, 'name');
     }
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('Sylius\Bundle\ResourceBundle\Form\Type\ObjectToIdentifierType');
+        $this->shouldHaveType('Sylius\Bundle\ResourceBundle\Form\Type\ResourceToIdentifierType');
     }
 
-    function it_build_a_form($manager, FormBuilderInterface $builder, ObjectRepository $repository)
+    function it_build_a_form(FormBuilderInterface $builder)
     {
-        $manager->getRepository('class')->willReturn($repository);
-
         $builder->addModelTransformer(
-            Argument::type('Sylius\Bundle\ResourceBundle\Form\DataTransformer\ObjectToIdentifierTransformer')
+            Argument::type('Sylius\Bundle\ResourceBundle\Form\DataTransformer\ResourceToIdentifierTransformer')
         )->shouldBeCalled();
 
         $this->buildForm($builder, array(
-            'class' => 'class',
             'identifier' => 'identifier',
         ));
     }
@@ -59,7 +55,7 @@ class ObjectToIdentifierTypeSpec extends ObjectBehavior
 
     function it_has_a_name()
     {
-        $this->getParent()->shouldReturn('entity');
+        $this->getParent()->shouldReturn('text');
     }
 
     function it_has_a_parent()

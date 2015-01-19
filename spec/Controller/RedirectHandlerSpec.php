@@ -13,7 +13,8 @@ class RedirectHandlerSpec extends ObjectBehavior
 {
     function let(Configuration $config, RouterInterface $router)
     {
-        $this->beConstructedWith($config, $router);
+        $this->beConstructedWith($router);
+        $this->setConfiguration($config);
     }
 
     function it_is_initializable()

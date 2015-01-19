@@ -17,7 +17,7 @@ use PhpSpec\ObjectBehavior;
 // Since the root namespace "spec" is not in our autoload
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'FakeEntity.php';
 
-class ObjectSelectionToIdentifierCollectionTransformerSpec extends ObjectBehavior
+class ResourceSelectionToIdentifierCollectionTransformerSpec extends ObjectBehavior
 {
     function let()
     {
@@ -26,7 +26,7 @@ class ObjectSelectionToIdentifierCollectionTransformerSpec extends ObjectBehavio
 
     function it_is_initializable()
     {
-        $this->shouldHaveType('Sylius\Bundle\ResourceBundle\Form\DataTransformer\ObjectSelectionToIdentifierCollectionTransformer');
+        $this->shouldHaveType('Sylius\Bundle\ResourceBundle\Form\DataTransformer\ResourceSelectionToIdentifierCollectionTransformer');
     }
 
     function it_does_transform_null_value()
@@ -56,18 +56,18 @@ class ObjectSelectionToIdentifierCollectionTransformerSpec extends ObjectBehavio
         $this->shouldThrow('Symfony\Component\Form\Exception\UnexpectedTypeException')->duringReverseTransform('string');
     }
 
-    function it_does_reverse_transform_array_value(FakeEntity $entity)
+    function it_does_reverse_transform_array_value(FakeEntity $resource)
     {
-        $entity->getId()->willReturn(1);
+        $resource->getId()->willReturn(1);
 
-        $this->reverseTransform(array($entity))->shouldHaveCount(1);
+        $this->reverseTransform(array($resource))->shouldHaveCount(1);
     }
 
-    function it_does_reverse_transform_array_of_arrays_value(FakeEntity $entityOne, FakeEntity $entityTwo)
+    function it_does_reverse_transform_array_of_arrays_value(FakeEntity $resource1, FakeEntity $resource2)
     {
-        $entityOne->getId()->willReturn(1);
-        $entityTwo->getId()->willReturn(1);
+        $resource1->getId()->willReturn(1);
+        $resource2->getId()->willReturn(1);
 
-        $this->reverseTransform(array(array($entityOne, $entityTwo)))->shouldHaveCount(2);
+        $this->reverseTransform(array(array($resource1, $resource2)))->shouldHaveCount(2);
     }
 }

@@ -11,65 +11,41 @@
 
 namespace Sylius\Bundle\ResourceBundle\Doctrine\ORM;
 
-use Doctrine\ORM\EntityRepository as BaseEntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Pagerfanta\Adapter\ArrayAdapter;
 use Pagerfanta\Adapter\DoctrineORMAdapter;
 use Pagerfanta\Pagerfanta;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
+use Sylius\Bundle\ResourceBundle\Doctrine\ResourceRepository as BaseResourceRepository;
+use Sylius\Component\Resource\Repository\ResourceRepositoryInterface;
 
 /**
  * Doctrine ORM driver entity repository.
  *
  * @author Paweł Jędrzejewski <pawel@sylius.org>
  */
-class EntityRepository extends BaseEntityRepository implements RepositoryInterface
+class ResourceRepository extends BaseResourceRepository implements ResourceRepositoryInterface
 {
     /**
      * {@inheritdoc}
      */
-    public function createNew()
-    {
-        $className = $this->getClassName();
-
-        return new $className();
-    }
-
-    /**
-     * @param mixed $id
-     *
-     * @return null|object
-     */
     public function find($id)
     {
-        return $this
-            ->getQueryBuilder()
-            ->andWhere($this->getAlias().'.id = '.intval($id))
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $this->objectRepository->find($id);
     }
 
     /**
-     * @return array
+     * {@inheritdoc}
      */
     public function findAll()
     {
-        return $this
-            ->getCollectionQueryBuilder()
-            ->getQuery()
-            ->getResult()
-        ;
+        return $this->objectRepository->findAll();
     }
 
     /**
-     * @param array $criteria
-     *
-     * @return null|object
+     * {@inheritdoc}
      */
     public function findOneBy(array $criteria)
     {
-        $queryBuilder = $this->getQueryBuilder();
+        $queryBuilder = $this->objectRepository->createQueryBuilder('o');
 
         $this->applyCriteria($queryBuilder, $criteria);
 
@@ -80,16 +56,11 @@ class EntityRepository extends BaseEntityRepository implements RepositoryInterfa
     }
 
     /**
-     * @param array $criteria
-     * @param array $sorting
-     * @param int   $limit
-     * @param int   $offset
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function findBy(array $criteria, array $sorting = array(), $limit = null, $offset = null)
     {
-        $queryBuilder = $this->getCollectionQueryBuilder();
+        $queryBuilder = $this->objectRepository->createQueryBuilder('o');
 
         $this->applyCriteria($queryBuilder, $criteria);
         $this->applySorting($queryBuilder, $sorting);
@@ -97,7 +68,6 @@ class EntityRepository extends BaseEntityRepository implements RepositoryInterfa
         if (null !== $limit) {
             $queryBuilder->setMaxResults($limit);
         }
-
         if (null !== $offset) {
             $queryBuilder->setFirstResult($offset);
         }
@@ -113,7 +83,7 @@ class EntityRepository extends BaseEntityRepository implements RepositoryInterfa
      */
     public function createPaginator(array $criteria = array(), array $sorting = array())
     {
-        $queryBuilder = $this->getCollectionQueryBuilder();
+        $queryBuilder = $this->objectRepository->createQueryBuilder('o');
 
         $this->applyCriteria($queryBuilder, $criteria);
         $this->applySorting($queryBuilder, $sorting);
@@ -126,35 +96,9 @@ class EntityRepository extends BaseEntityRepository implements RepositoryInterfa
      *
      * @return Pagerfanta
      */
-    public function getPaginator(QueryBuilder $queryBuilder)
+    protected function getPaginator(QueryBuilder $queryBuilder)
     {
         return new Pagerfanta(new DoctrineORMAdapter($queryBuilder, true, false));
-    }
-
-    /**
-     * @param array $objects
-     *
-     * @return Pagerfanta
-     */
-    public function getArrayPaginator($objects)
-    {
-        return new Pagerfanta(new ArrayAdapter($objects));
-    }
-
-    /**
-     * @return QueryBuilder
-     */
-    protected function getQueryBuilder()
-    {
-        return $this->createQueryBuilder($this->getAlias());
-    }
-
-    /**
-     * @return QueryBuilder
-     */
-    protected function getCollectionQueryBuilder()
-    {
-        return $this->createQueryBuilder($this->getAlias());
     }
 
     /**
@@ -165,6 +109,7 @@ class EntityRepository extends BaseEntityRepository implements RepositoryInterfa
     {
         foreach ($criteria as $property => $value) {
             $name = $this->getPropertyName($property);
+
             if (null === $value) {
                 $queryBuilder->andWhere($queryBuilder->expr()->isNull($name));
             } elseif (is_array($value)) {
@@ -200,17 +145,9 @@ class EntityRepository extends BaseEntityRepository implements RepositoryInterfa
     protected function getPropertyName($name)
     {
         if (false === strpos($name, '.')) {
-            return $this->getAlias().'.'.$name;
+            return 'o.'.$name;
         }
 
         return $name;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getAlias()
-    {
-        return 'o';
     }
 }

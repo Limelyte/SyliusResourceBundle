@@ -15,6 +15,8 @@ use PhpSpec\ObjectBehavior;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
+require_once __DIR__.'/../Fixture/Entity/Foo.php';
+
 /**
  * Doctrine target entities resolver spec.
  * It adds proper method calls to doctrine listener.
@@ -89,7 +91,7 @@ class DoctrineTargetEntitiesResolverSpec extends ObjectBehavior
             ->shouldBeCalled()
             ->willReturn($resolverDefinition);
 
-        $container->hasParameter('Sylius\Component\Resource\Repository\RepositoryInterface')
+        $container->hasParameter('Sylius\Component\Resource\Repository\ResourceRepositoryInterface')
             ->shouldBeCalled()
             ->willReturn(false);
 
@@ -100,11 +102,11 @@ class DoctrineTargetEntitiesResolverSpec extends ObjectBehavior
         $resolverDefinition->addMethodCall(
             'addResolveTargetEntity',
             array(
-                'Sylius\Component\Resource\Repository\RepositoryInterface', 'spec\Sylius\Bundle\ResourceBundle\Fixture\Entity\Foo', array()
+                'Sylius\Component\Resource\Repository\ResourceRepositoryInterface', 'spec\Sylius\Bundle\ResourceBundle\Fixture\Entity\Foo', array()
             ))->shouldBeCalled();
 
         $this->resolve($container, array(
-            'Sylius\Component\Resource\Repository\RepositoryInterface' => 'spec\Sylius\Bundle\ResourceBundle\Fixture\Entity\Foo'
+            'Sylius\Component\Resource\Repository\ResourceRepositoryInterface' => 'spec\Sylius\Bundle\ResourceBundle\Fixture\Entity\Foo'
         ));
     }
 }

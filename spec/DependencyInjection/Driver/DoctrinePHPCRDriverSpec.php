@@ -48,10 +48,19 @@ class DoctrinePHPCRDriverSpec extends ObjectBehavior
             Argument::type('Symfony\Component\DependencyInjection\Definition')
         )->shouldBeCalled();
 
-        $alias = new Alias('doctrine_phpcr.odm.default_document_manager');
-        $container->setAlias(
+        $container->setDefinition(
             'prefix.manager.resource',
-            $alias
+            Argument::type('Symfony\Component\DependencyInjection\Definition')
+        )->shouldBeCalled();
+
+        $container->setDefinition(
+            'prefix.factory.resource',
+            Argument::type('Symfony\Component\DependencyInjection\Definition')
+        )->shouldBeCalled();
+
+        $container->setDefinition(
+            'prefix.event_dispatcher.resource',
+            Argument::type('Symfony\Component\DependencyInjection\Definition')
         )->shouldBeCalled();
 
         $this->beConstructedWith($container, 'prefix', 'resource', 'default');
