@@ -310,7 +310,7 @@ class RequestConfiguration
     {
         $repository = $this->parameters->get('repository', array('method' => $default));
 
-        return is_array($repository) ? $repository['method'] : $repository;
+        return is_array($repository) && !empty($repository['method']) ? $repository['method'] : $default;
     }
 
     /**
@@ -321,7 +321,7 @@ class RequestConfiguration
     {
         $repository = $this->parameters->get('repository', array());
 
-        return isset($repository['arguments']) ? $repository['arguments'] : $default;
+        return isset($repository['arguments']) && !empty($repository['arguments']) ? $repository['arguments'] : $default;
     }
 
     /**
@@ -332,7 +332,7 @@ class RequestConfiguration
     {
         $factory = $this->parameters->get('factory', array('method' => $default));
 
-        return is_array($factory) ? $factory['method'] : $factory;
+        return is_array($factory) && !empty($factory['method']) ? $factory['method'] : $factory;
     }
 
     /**
