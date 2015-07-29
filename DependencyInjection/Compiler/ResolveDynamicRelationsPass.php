@@ -31,7 +31,7 @@ class ResolveDynamicRelationsPass implements CompilerPassInterface
         $resources = $container->getParameter('sylius.resources');
 
         if (!$container->hasDefinition('doctrine.orm.listeners.resolve_target_entity')) {
-            throw new \RuntimeException('Cannot find Doctrine Target Entity Resolver Listener.');
+            return;
         }
 
         $resolveTargetEntityListener = $container->findDefinition('doctrine.orm.listeners.resolve_target_entity');
