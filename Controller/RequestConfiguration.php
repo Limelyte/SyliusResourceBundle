@@ -75,11 +75,10 @@ class RequestConfiguration
      */
     public function getDefaultTemplateName($name)
     {
-        if (!$this->metadata->hasParameter('templates')) {
-            return null;
-        }
+        // default value of null allows templates to be loaded from app/Resources/views
+        $templateNamespace = $this->metadata->getParameter('templates_namespace', null);
 
-        return sprintf('%s:%s.%s', $this->metadata->getParameter('templates') ?: ':', $name, 'twig');
+        return sprintf('%s:%s.%s', $templateNamespace ?: ':', $name, 'twig');
     }
 
     /**
