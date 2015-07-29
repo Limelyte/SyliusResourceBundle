@@ -490,6 +490,7 @@ class ResourceController extends ContainerAware
                 )
             );
         }
+
         return $resource;
     }
 
