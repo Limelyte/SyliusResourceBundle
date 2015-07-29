@@ -45,7 +45,7 @@ class ParametersParser
     {
         foreach ($parameters as $key => $value) {
             if (is_array($value)) {
-                 $this->parseRequestValues($value, $request);
+                $parameters[$key] = $this->parseRequestValues($value, $request);
             }
 
             if (is_string($value) && 0 === strpos($value, '$')) {

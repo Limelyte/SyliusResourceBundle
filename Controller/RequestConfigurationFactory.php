@@ -64,9 +64,8 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
      */
     public function create(ResourceMetadataInterface $metadata, Request $request)
     {
-        $parameters = $this->parseApiParameters($request);
+        $parameters = $this->parseParametersFromRequest($request);
         $parameters = $this->parametersParser->parseRequestValues($parameters, $request);
-        exit;
 
         return new $this->configurationClass($metadata, $request, new Parameters($parameters));
     }
@@ -76,7 +75,7 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
      *
      * @return array
      */
-    private function parseApiParameters(Request $request)
+    private function parseParametersFromRequest(Request $request)
     {
         $parameters = array();
 
