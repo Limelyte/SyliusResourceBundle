@@ -158,7 +158,7 @@ class ResourceController extends ContainerAware
 
         $view = View::create($resource)
             ->setTemplate($configuration->getTemplate(ResourceActions::SHOW.'.html'))
-            ->setTemplateVar($this->metadata->getResourceName())
+            ->setTemplateVar($this->getTemplateVar())
         ;
 
         if ($configuration->isHtmlRequest()) {
@@ -207,7 +207,7 @@ class ResourceController extends ContainerAware
 
         $view = View::create($resources)
             ->setTemplate($configuration->getTemplate('index.html'))
-            ->setTemplateVar($this->metadata->getPluralResourceName())
+            ->setTemplateVar($this->getPluralTemplateVar())
         ;
 
         if (!$configuration->isHtmlRequest()) {
@@ -546,6 +546,16 @@ class ResourceController extends ContainerAware
     protected function createNew(RequestConfiguration $configuration)
     {
         return $this->resourceResolver->createResource($configuration);
+    }
+
+    protected function getTemplateVar()
+    {
+        return $this->metadata->getResourceName();
+    }
+
+    protected function getPluralTemplateVar()
+    {
+        return $this->metadata->getPluralResourceName();
     }
 
     /**
