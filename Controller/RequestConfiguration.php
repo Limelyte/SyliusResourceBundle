@@ -75,8 +75,8 @@ class RequestConfiguration
      */
     public function getDefaultTemplateName($name)
     {
-        // default value of null allows templates to be loaded from app/Resources/views
-        $templateNamespace = $this->metadata->getParameter('templates_namespace', null);
+        // value can be null which allows templates to be loaded from app/Resources/views
+        $templateNamespace = $this->metadata->getTemplatesNamespace();
 
         return sprintf('%s:%s.%s', $templateNamespace ?: ':', $name, 'twig');
     }
