@@ -50,7 +50,6 @@ class ParametersParser
 
             if (is_string($value) && 0 === strpos($value, '$')) {
                 $parameterName = substr($value, 1);
-                var_dump($request->get($parameterName));
                 $parameters[$key] = $request->get($parameterName);
             }
 
