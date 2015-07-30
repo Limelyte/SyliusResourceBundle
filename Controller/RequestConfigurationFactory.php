@@ -91,6 +91,15 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
             }
         }
 
+        // TODO: Figure out better way to handle defaults for this
+        if (false == $request->attributes->has('criteria')) {
+            $request->attributes->set('criteria', []);
+        }
+
+        if (false == $request->attributes->has('sorting')) {
+            $request->attributes->set('sorting', []);
+        }
+
         return array_merge($request->attributes->get('_sylius', array()), $parameters);
     }
 }
