@@ -1,13 +1,15 @@
-<a href="#" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-    {{ paginator.maxPerPage }}&nbsp;
-    <i class="icon-angle-down"></i>
-</a>
+<div class="btn-group paginator">
+    <a href="#" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown">
+        {{ paginator.maxPerPage }}&nbsp;
+        <i class="glyphicon glyphicon-chevron-down"></i>
+    </a>
 
-<ul class="dropdown-menu pull-left" role="menu">
-    {% for limit, url in limits %}
-    <li>
-        <a href="{{ url }}">{{ limit }}</a>
-    </li>
-    {% endfor %}
-</ul>
+    <ul class="dropdown-menu pull-left" role="menu">
+        {% for limit, url in limits %}
+        <li>
+            <a href="{{ url }}">{{ limit }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
 / {{ paginator.nbResults }}
