@@ -272,7 +272,7 @@ class RequestConfiguration
      */
     public function getSorting(array $sorting = array())
     {
-        $defaultSorting = array_merge($this->parameters->get('sorting', array()), $sorting);
+        $defaultSorting = array_merge($this->parameters->get('sorting', array('id' => 'asc')), $sorting);
 
         if ($this->isSortable()) {
             $sorting = $this->getRequestParameter('sorting');
