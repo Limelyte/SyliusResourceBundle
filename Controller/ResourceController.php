@@ -444,8 +444,7 @@ class ResourceController extends ContainerAware
      */
     private function createForm(RequestConfiguration $configuration, $resource = null)
     {
-        $form = $this->formFactory->createForm($configuration, $this->metadata);
-        $form->setData($resource);
+        $form = $this->formFactory->createForm($configuration, $this->metadata, $resource);
 
         return $form;
     }

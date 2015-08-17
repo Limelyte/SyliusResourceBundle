@@ -25,7 +25,7 @@ class ResourceFormFactory implements ResourceFormFactoryInterface
     /**
      * @var FormFactoryInterface
      */
-    private $formFactory;
+    public $formFactory;
 
     /**
      * @param FormFactoryInterface $formFactory
@@ -38,7 +38,7 @@ class ResourceFormFactory implements ResourceFormFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function createForm(RequestConfiguration $configuration, ResourceMetadataInterface $metadata)
+    public function createForm(RequestConfiguration $configuration, ResourceMetadataInterface $metadata, $resource = null)
     {
         $type = $configuration->getFormType();
 
@@ -50,6 +50,7 @@ class ResourceFormFactory implements ResourceFormFactoryInterface
             return $this->formFactory->createNamed('', $type, null, array('csrf_protection' => false));
         }
 
-        return $this->formFactory->create($type, null);
+        $form = $this->formFactory->create($type, null);
+        $form->setData($resource);
     }
 }

@@ -23,7 +23,8 @@ interface ResourceFormFactoryInterface
      * @param RequestConfiguration $configuration
      * @param ResourceMetadataInterface $metadata
      *
+     * @param null $resource
      * @return FormInterface
      */
-    public function createForm(RequestConfiguration $configuration, ResourceMetadataInterface $metadata);
+    public function createForm(RequestConfiguration $configuration, ResourceMetadataInterface $metadata, $resource = null);
 }
