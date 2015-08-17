@@ -65,11 +65,6 @@ class ResourceController extends ContainerAware
     /**
      * @var ResourceFactoryInterface
      */
-    protected $factory;
-
-    /**
-     * @var ResourceFactoryInterface
-     */
     protected $eventDispatcher;
 
     /**
@@ -132,7 +127,6 @@ class ResourceController extends ContainerAware
         $this->configurationFactory = $configurationFactory;
         $this->manager              = $manager;
         $this->repository           = $repository;
-        $this->factory              = $factory;
         $this->eventDispatcher      = $eventDispatcher;
         $this->formFactory          = $formFactory;
         $this->stateMachineFactory  = $stateMachineFactory;
