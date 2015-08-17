@@ -351,7 +351,9 @@ class ResourceController extends ContainerAware
      */
     public function restoreAction(Request $request)
     {
-        $this->isGrantedOr403(ResourceActions::RESTORE);
+        $configuration = $this->createConfiguration($request);
+
+        $this->isGrantedOr403($configuration, ResourceActions::RESTORE);
 
         $resource = $this->findOr404($request);
 
@@ -378,7 +380,9 @@ class ResourceController extends ContainerAware
      */
     public function revertAction(Request $request)
     {
-        $this->isGrantedOr403(ResourceActions::REVERT);
+        $configuration = $this->createConfiguration($request);
+
+        $this->isGrantedOr403($configuration, ResourceActions::REVERT);
 
         $resource = $this->findOr404($request);
 
@@ -406,7 +410,9 @@ class ResourceController extends ContainerAware
      */
     public function transitionAction(Request $request, $transition, $graph)
     {
-        $this->isGrantedOr403(ResourceActions::TRANSITION);
+        $configuration = $this->createConfiguration($request);
+
+        $this->isGrantedOr403($configuration, ResourceActions::TRANSITION);
 
         $resource = $this->findOr404($request);
         $stateMachine = $this->stateMachineFactory->get($resource, $graph);
