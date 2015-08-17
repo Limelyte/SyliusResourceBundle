@@ -143,7 +143,7 @@ class ResourceController extends ContainerAware
      */
     public function showAction(Request $request)
     {
-        $configuration = $this->configurationFactory->create($this->metadata, $request);
+        $configuration = $this->createConfiguration($request);
 
         $this->isGrantedOr403($configuration, ResourceActions::SHOW);
 
@@ -173,7 +173,7 @@ class ResourceController extends ContainerAware
      */
     public function indexAction(Request $request)
     {
-        $configuration = $this->configurationFactory->create($this->metadata, $request);
+        $configuration = $this->createConfiguration($request);
 
         $this->isGrantedOr403($configuration, ResourceActions::INDEX);
 
@@ -222,7 +222,7 @@ class ResourceController extends ContainerAware
      */
     public function createAction(Request $request)
     {
-        $configuration = $this->configurationFactory->create($this->metadata, $request);
+        $configuration = $this->createConfiguration($request);
 
         $this->isGrantedOr403($configuration, ResourceActions::CREATE);
 
@@ -272,7 +272,7 @@ class ResourceController extends ContainerAware
      */
     public function updateAction(Request $request)
     {
-        $configuration = $this->configurationFactory->create($this->metadata, $request);
+        $configuration = $this->createConfiguration($request);
 
         $this->isGrantedOr403($configuration, ResourceActions::UPDATE);
 
@@ -322,7 +322,7 @@ class ResourceController extends ContainerAware
      */
     public function deleteAction(Request $request)
     {
-        $configuration = $this->configurationFactory->create($this->metadata, $request);
+        $configuration = $this->createConfiguration($request);
 
         $this->isGrantedOr403($configuration, ResourceActions::DELETE);
 
@@ -558,5 +558,16 @@ class ResourceController extends ContainerAware
     private function getPagerfantaFactory()
     {
         return new PagerfantaFactory();
+    }
+
+    /**
+     * @param Request $request
+     * @return RequestConfiguration
+     */
+    protected function createConfiguration(Request $request)
+    {
+        $configuration = $this->configurationFactory->create($this->metadata, $request);
+
+        return $configuration;
     }
 }
