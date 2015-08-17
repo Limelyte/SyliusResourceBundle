@@ -472,15 +472,17 @@ class ResourceController extends ContainerAware
 
         $criteria = array_merge($default, $criteria);
 
-        if (!$resource = call_user_func_array(
-            array($this->repository, $configuration->getRepositoryMethod('findOneBy')),
-            array($configuration->getRepositoryArguments($criteria))
-        )) {
+        $resource = $this->resourceResolver->getResource($configuration, 'findOneBy', array($criteria));
+
+        // by default we will be calling findOneBy(array $criteria) with $criteria being either the slug or id
+        // this default could be overridden by specifying in the configuration that the repository method is different
+        // note that if you're dealing with the configuration object, it needs to be specific to this request
+        if (!$resource) {
             throw new NotFoundHttpException(
                 sprintf(
                     'Requested resource "%s" does not exist with these criteria: %s.',
                     $this->metadata->getAlias(),
-                    json_encode($configuration->getCriteria($criteria))
+                    json_encode($criteria)
                 )
             );
         }
