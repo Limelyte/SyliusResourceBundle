@@ -321,7 +321,20 @@ class RequestConfiguration
     {
         $repository = $this->parameters->get('repository', array());
 
-        return isset($repository['arguments']) && !empty($repository['arguments']) ? $repository['arguments'] : $default;
+        if (false == isset($repository['arguments']) || empty($repository['arguments'])) {
+            return $default;
+        }
+
+        $empty = true;
+        array_walk_recursive($repository['arguments'], function($item) use (&$empty) {
+            $empty = $empty && empty($item);
+        });
+
+        // We must compare argument types and if the dynamic argument type is not equal to the
+        // default argument type then we must use the default value
+        // This happens when arguments are passed in that don't have a value in the request for instance and therefore become null
+        // This can happen when specifying 'arguments' => ['$criteria', '$orderby'] and
+        return false == $empty ? $repository['arguments'] : $default;
     }
 
     /**
