@@ -200,7 +200,7 @@ class ResourceController extends ContainerAware
         }
 
         $view = View::create($resources)
-            ->setTemplate($configuration->getTemplate('index.html'))
+            ->setTemplate($configuration->getTemplate(ResourceActions::INDEX.'.html'))
             ->setTemplateVar($this->getPluralTemplateVar())
         ;
 
@@ -253,7 +253,7 @@ class ResourceController extends ContainerAware
         }
 
         $view = View::create()
-            ->setTemplate($configuration->getTemplate('create.html'))
+            ->setTemplate($configuration->getTemplate(ResourceActions::CREATE.'.html'))
             ->setData(array(
                 'metadata'                         => $this->metadata,
                 'resource'                         => $resource,
@@ -303,7 +303,7 @@ class ResourceController extends ContainerAware
         }
 
         $view = View::create()
-            ->setTemplate($configuration->getTemplate('create.html'))
+            ->setTemplate($configuration->getTemplate(ResourceActions::UPDATE.'.html'))
             ->setData(array(
                 'metadata'                         => $this->metadata,
                 'resource'                         => $resource,
