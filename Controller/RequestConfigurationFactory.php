@@ -10,6 +10,7 @@
  */
 
 namespace Sylius\Bundle\ResourceBundle\Controller;
+
 use Sylius\Component\Resource\Metadata\ResourceMetadataInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -50,6 +51,7 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
      * @param string $configurationClass
      * @param array $defaultParameters
      */
+    // TODO: Inject a new variable for shared parameters
     public function __construct(ParametersParser $parametersParser, $configurationClass, array $defaultParameters = array())
     {
         $this->parametersParser = $parametersParser;
@@ -64,8 +66,17 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
      */
     public function create(ResourceMetadataInterface $metadata, Request $request)
     {
+        $parameterNames = null;
         $parameters = $this->parseParametersFromRequest($request);
-        $parameters = $this->parametersParser->parseRequestValues($parameters, $request);
+        $parameters = array_merge($parameters, $this->defaultParameters);
+        $parameters = $this->parametersParser->parseRequestValues($parameters, $request, $parameterNames);
+
+        $routeParams = $request->attributes->get('_route_params', array());
+        if (isset($routeParams['_sylius'])) {
+            unset($routeParams['_sylius']);
+
+            $request->attributes->set('_route_params', $routeParams);
+        }
 
         return new $this->configurationClass($metadata, $request, new Parameters($parameters));
     }
@@ -89,15 +100,6 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
             if (preg_match(self::API_GROUPS_REGEXP, $request->headers->get(self::API_GROUPS_HEADER), $matches)) {
                 $parameters['serialization_groups'] = array_map('trim', explode(',', $matches['groups']));
             }
-        }
-
-        // TODO: Figure out better way to handle defaults for this
-        if (false == $request->attributes->has('criteria')) {
-            $request->attributes->set('criteria', []);
-        }
-
-        if (false == $request->attributes->has('sorting')) {
-            $request->attributes->set('sorting', []);
         }
 
         return array_merge($request->attributes->get('_sylius', array()), $parameters);
