@@ -43,20 +43,25 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
      * @var array
      */
     private $defaultParameters;
+    /**
+     * @var Parameters
+     */
+    private $parameters;
 
     /**
      * Constructor.
      *
      * @param ParametersParser $parametersParser
+     * @param Parameters $parameters
      * @param string $configurationClass
      * @param array $defaultParameters
      */
-    // TODO: Inject a new variable for shared parameters
-    public function __construct(ParametersParser $parametersParser, $configurationClass, array $defaultParameters = array())
+    public function __construct(ParametersParser $parametersParser, Parameters $parameters, $configurationClass, array $defaultParameters = array())
     {
         $this->parametersParser = $parametersParser;
         $this->configurationClass = $configurationClass;
         $this->defaultParameters = $defaultParameters;
+        $this->parameters = $parameters;
     }
 
     /**
@@ -70,6 +75,7 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
         $parameters = $this->parseParametersFromRequest($request);
         $parameters = array_merge($parameters, $this->defaultParameters);
         $parameters = $this->parametersParser->parseRequestValues($parameters, $request, $parameterNames);
+        $parameters['parameter_name'] = $parameterNames;
 
         $routeParams = $request->attributes->get('_route_params', array());
         if (isset($routeParams['_sylius'])) {
@@ -78,7 +84,9 @@ class RequestConfigurationFactory implements RequestConfigurationFactoryInterfac
             $request->attributes->set('_route_params', $routeParams);
         }
 
-        return new $this->configurationClass($metadata, $request, new Parameters($parameters));
+        $this->parameters->add($parameters);
+
+        return new $this->configurationClass($metadata, $request, $this->parameters);
     }
 
     /**

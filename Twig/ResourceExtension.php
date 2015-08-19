@@ -56,7 +56,8 @@ class ResourceExtension extends \Twig_Extension
      * Constructor.
      *
      * @param RouterInterface $router
-     * @param Parameters      $parameters
+     * @param Parameters      $parameters A parameter bag that at the very least has the following keys:
+     *                                    sortable, sorting, allowed_paginate, parameter_name
      * @param string          $paginateTemplate
      * @param string          $sortingTemplate
      */
@@ -123,7 +124,7 @@ class ResourceExtension extends \Twig_Extension
         }
 
         $options = $this->getOptions($options, $this->sortingTemplate);
-        $sorting = $this->request->query->get($this->getParameterName('sorting'), $this->parameters->get($this->getParameterName('sorting'), array('id' => 'asc')));
+        $sorting = $this->parameters->get($this->getParameterName('sorting'), array()); // don't force sorting here because then it's required in two locations
         $currentOrder = null;
 
         if (isset($sorting[$property])) {
