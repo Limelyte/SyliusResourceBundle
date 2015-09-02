@@ -124,7 +124,7 @@ class ResourceExtension extends \Twig_Extension
         }
 
         $options = $this->getOptions($options, $this->sortingTemplate);
-        $sorting = $this->parameters->get($this->getParameterName('sorting'), array()); // don't force sorting here because then it's required in two locations
+        $sorting = $this->request->query->get($this->getParameterName('sorting'), $this->parameters->get($this->getParameterName('sorting'), array('id' => 'asc')));
         $currentOrder = null;
 
         if (isset($sorting[$property])) {
