@@ -28,7 +28,7 @@
         "symfony/form":                    "~2.3",
         "sylius/resource":                 "0.15.*@dev",
         "sylius/storage":                  "0.15.*@dev",
-        "friendsofsymfony/rest-bundle":    "~1.5",
+        "friendsofsymfony/rest-bundle":    "~1.5|2.0.*@dev",
         "jms/serializer-bundle":           "~0.13",
         "white-october/pagerfanta-bundle": "~1.0",
         "doctrine/doctrine-bundle":        "~1.3"
